@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrices de Roles</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+        }
+        .verde {
+            background-color: green;
+            color: white;
+        }
+        .amarillo {
+            background-color: yellow;
+        }
+        .rojo {
+            background-color: red;
+            color: white;
+        }
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+        nav a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#">Roles</a>
+    </nav>
+    <h1>Matrices de Roles</h1>
+    <table>
+        <tr>
+            <th>Rol</th>
+            <th>Tarea</th>
+            <th>Horas</th>
+            <th>Validación</th>
+        </tr>
+        <tr>
+            <td>Rol 1</td>
+            <td>Tarea 1</td>
+            <td><input type="number" id="rol1-tarea1" oninput="validateHours('rol1-tarea1')"></td>
+            <td id="validation-rol1-tarea1"></td>
+        </tr>
+        <!-- Add more rows as needed -->
+    </table>
+
+    <script>
+        function validateHours(inputId) {
+            const input = document.getElementById(inputId);
+            const validationCell = document.getElementById(`validation-${inputId}`);
+            const hours = parseFloat(input.value);
+
+            if (hours < 24) {
+                validationCell.textContent = 'Validado';
+                validationCell.className = 'verde';
+            } else if (hours <= 40) {
+                validationCell.textContent = 'Advertencia';
+                validationCell.className = 'amarillo';
+            } else {
+                validationCell.textContent = 'Exceso';
+                validationCell.className = 'rojo';
+            }
+        }
+    </script>
+</body>
+</html>
