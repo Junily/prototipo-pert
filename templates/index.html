@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Planner con Estimación PERT</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+        }
+        .verde {
+            background-color: green;
+            color: white;
+        }
+        .amarillo {
+            background-color: yellow;
+        }
+        .rojo {
+            background-color: red;
+            color: white;
+        }
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+        nav a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="#">Home</a>
+        <a href="roles.html">Roles</a>
+    </nav>
+    <h1>Team Planner con Estimación PERT</h1>
+    <h2>Estimación PERT</h2>
+    <form id="form">
+        <label for="a">Horas Mínimas (a):</label>
+        <input type="number" id="a" name="a" required><br>
+        <label for="b">Horas Justas (b):</label>
+        <input type="number" id="b" name="b" required><br>
+        <label for="c">Horas Pesimistas (c):</label>
+        <input type="number" id="c" name="c" required><br>
+        <button type="submit">Calcular</button>
+    </form>
+    <h2>Resultado:</h2>
+    <p id="resultado"></p>
+
+    <h2>Miembros del Equipo</h2>
+    <table id="miembros-table">
+        <tr>
+            <th>Rol</th>
+            <th>Recursos (Horas Semanales)</th>
+            <th>Acciones</th>
+        </tr>
+        <tr>
+            <td>
+                <select>
+                    <option>Rol 1</option>
+                    <option>Rol 2</option>
+                    <option>Rol 3</option>
+                </select>
+            </td>
+            <td><input type="number" value="40"></td>
+            <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+        </tr>
+    </table>
+    <button type="button" onclick="addRow('miembros-table')">Agregar Miembro</button>
+
+    <h2>Tareas</h2>
+    <table id="tareas-table">
+        <tr>
+            <th>Tarea</th>
+            <th>Acciones</th>
+        </tr>
+        <tr>
+            <td><input type="text" value="Tarea 1"></td>
+            <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+        </tr>
+    </table>
+    <button type="button" onclick="addRow('tareas-table')">Agregar Tarea</button>
+
+    <h2>Asignaciones</h2>
+    <table id="asignaciones-table">
+        <tr>
+            <th>Rol</th>
+            <th>Tarea</th>
+            <th>Acciones</th>
+        </tr>
+        <tr>
+            <td>
+                <select>
+                    <option>Rol 1</option>
+                    <option>Rol 2</option>
+                    <option>Rol 3</option>
+                </select>
+            </td>
+            <td>
+                <select>
+                    <option>Tarea 1</option>
+                    <option>Tarea 2</option>
+                    <option>Tarea 3</option>
+                </select>
+            </td>
+            <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+        </tr>
+    </table>
+    <button type="button" onclick="addRow('asignaciones-table')">Agregar Asignación</button>
+
+    <h2>Restricciones</h2>
+    <table>
+        <tr>
+            <th>Parámetro</th>
+            <th>Valor</th>
+            <th>Comentarios</th>
+        </tr>
+        <tr>
+            <td>Lunes de inicio</td>
+            <td><input type="date"></td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Número de semanas</td>
+            <td><input type="number"></td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Presupuesto</td>
+            <td><input type="number"></td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Total de horas*Mes (FTE/month)</td>
+            <td><input type="number" step="0.1"></td>
+            <td><input type="text"></td>
+        </tr>
+    </table>
+
+    <script>
+        document.getElementById('form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const a = document.getElementById('a').value;
+            const b = document.getElementById('b').value;
+            const c = document.getElementById('c').value;
+
+            fetch('/calcular', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({a: a, b: b, c: c})
+            })
+            .then(response => response.json())
+            .then(data => {
+                const probable = data.estimado + data.intervalo;
+                let colorClass = '';
+                if (data.estimado < 24) {
+                    colorClass = 'verde';
+                } else if (data.estimado <= 40) {
+                    colorClass = 'amarillo';
+                } else {
+                    colorClass = 'rojo';
+                }
+                document.getElementById('resultado').innerHTML = `
+                    Estimado: <span class="${colorClass}">${data.estimado.toFixed(2)} horas</span>,
+                    Intervalo de confianza: ${data.intervalo.toFixed(2)} horas,
+                    Probable: ${probable.toFixed(2)} horas
+                `;
+            });
+        });
+
+        function addRow(tableId) {
+            const table = document.getElementById(tableId);
+            const newRow = table.insertRow();
+            if (tableId === 'miembros-table') {
+                newRow.innerHTML = `
+                    <td>
+                        <select>
+                            <option>Rol 1</option>
+                            <option>Rol 2</option>
+                            <option>Rol 3</option>
+                        </select>
+                    </td>
+                    <td><input type="number" value="40"></td>
+                    <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+                `;
+            } else if (tableId === 'tareas-table') {
+                newRow.innerHTML = `
+                    <td><input type="text" value="Tarea"></td>
+                    <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+                `;
+            } else if (tableId === 'asignaciones-table') {
+                newRow.innerHTML = `
+                    <td>
+                        <select>
+                            <option>Rol 1</option>
+                            <option>Rol 2</option>
+                            <option>Rol 3</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select>
+                            <option>Tarea 1</option>
+                            <option>Tarea 2</option>
+                            <option>Tarea 3</option>
+                        </select>
+                    </td>
+                    <td><button type="button" onclick="removeRow(this)">Quitar</button></td>
+                `;
+            }
+        }
+
+        function removeRow(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+    </script>
+</body>
+</html>
